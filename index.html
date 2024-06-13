@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Emscripten Example</title>
+</head>
+<body>
+   <h1>Emscripten Example</h1>
+   <input type="text" id="nameInput" maxlength="10" placeholder="Enter name"/>
+   <button id="callFunction">Add Mr.</button>
+   <div id="result"></div>
+
+   <script>
+      var Module = {
+         onRuntimeInitialized: function() {
+            // C++の関数をJavaScriptで呼び出す準備
+            var addMr = Module.cwrap('addMr', 'string', ['string']);
+
+            document.getElementById('callFunction').addEventListener('click', function() {
+               var name = document.getElementById('nameInput').value;
+               if (name.length <= 10) {
+                  var result = addMr(name);
+                  document.getElementById('result').innerText = result;
+               } else {
+                  alert("Please enter a name with 10 characters or less.");
+               }
+            });
+         }
+      };
+   </script>
+   <script src="example.js"></script>
+</body>
+</html>
