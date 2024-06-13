@@ -347,112 +347,38 @@ void trip_generate(const char *trip_key,char *result){
     crypt(trip_key, salt, result);
 }
 
-// bool On = false;
-// int reloadCounter = 0;
-// int tripCounter = 0;
-// int Csalt[256]={
-//     46, 46, 46, 46, 46,
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 110, 111, 
-//     112, 113, 114, 115, 116, 
-//     117, 118, 119, 120, 121, 
-//     122, 46, 47, 48, 49, 
-//     50, 51, 52, 53, 54, 
-//     55, 56, 57, 65, 66, 
-//     67, 68, 69, 70, 71, 
-//     65, 66, 67, 68, 69, 
-//     70, 71, 72, 73, 74, 
-//     75, 76, 77, 78, 79, 
-//     80, 81, 82, 83, 84, 
-//     85, 86, 87, 88, 89, 
-//     90, 97, 98, 99, 100, 
-//     101, 102, 97, 98, 99, 
-//     100, 101, 102, 103, 104, 
-//     105, 106, 107, 108, 109, 
-//     110, 111, 112, 113, 114, 
-//     115, 116, 117, 118, 119, 
-//     120, 121, 122, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 
-//     46, 46, 46, 46, 46, 46
-//     };
-// std::string encodeURIComponent(const std::string &value) {
-//     std::ostringstream escaped;
-//     escaped.fill('0');
-//     escaped << std::hex;
-
-//     for (char c : value) {
-//         if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-//             escaped << c;
-//         } else {
-//             escaped << '%' << std::setw(2) << int((unsigned char) c);
-//         }
-//     }
-
-//     return escaped.str();
-// }
-// std::string decodeURIComponent(const std::string &value) {
-//     std::ostringstream unescaped;
-//     std::istringstream escaped(value);
-//     char c;
-
-//     while (escaped >> c) {
-//         if (c == '%') {
-//             int hexValue;
-//             escaped >> std::hex >> hexValue;
-//             unescaped << static_cast<char>(hexValue);
-//         } else if (c == '+') {
-//             unescaped << ' ';
-//         } else {
-//             unescaped << c;
-//         }
-//     }
-
-//     return unescaped.str();
-// }
 
 
 
-
-
+void to_next_pass(char *pass){
+    // pass[9] 33~126
+    char _c=0;
+    if(pass[0]>=126){
+        pass[0]=33;
+        _c=1;
+    }else{
+        pass[0]+=1;
+        _c=0;
+    }
+    for(int i=1;i<8;i++){
+        if(pass[i]+_c>=126){
+            pass[i]=33;
+            _c=1;
+            continue;
+        }else{
+            break;
+        }
+    }
+    pass[8]='\0';
+}
 
 void trip_search(char *target,int length){
     // 乱数生成器を初期化
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-    std::uniform_real_distribution<> dis_real(0.0, 1.0);
-    std::uniform_int_distribution<> dis_1920(0, 1919);
-    std::uniform_int_distribution<> dis_65536(0, 65535);
-    std::uniform_int_distribution<> dis_asc(33, 126);
-    std::uniform_int_distribution<> dis_safe(48, 57);
+    const int minValue = 33;
+    const int maxValue = 126;
+    std::uniform_int_distribution<> dis_asc(minValue, maxValue);
     std::vector<double> by(10);
     int rnd;
     char pass[9];
@@ -460,31 +386,13 @@ void trip_search(char *target,int length){
     char res_trip[17];
     char trip[17];
     char res_trip_c[16];
-    // ut8-8用
-    // for (double &value : by) {
-    //     value = dis(gen);
-    // }
     bool end_flag=false;
     int t=0;
     int byte = 0;
-    while (!end_flag && t<10000000) {
-        // ut8-8用
-        // while (byte < 8) {
-        //     if (by[byte] < 0.19512) {
-        //         int rnd = dis_1920(gen);
-        //         pass[byte] = (rnd - rnd % 64) / 64 + 194;
-        //         byte++;
-        //         pass[byte] = rnd % 64 + 128;
-        //         byte++;
-        //     } else if (0.97560 < by[byte]) {
-        //         int rnd = dis_65536(gen);
-        //         pass[byte] = (rnd - rnd % 4096) / 4096 + 224;
-        //         byte++;
-        //         pass[byte] = (rnd % 4096 - rnd % 64) / 64 + 128;
-        //         byte++;
-        //         pass[byte] = rnd % 64 + 128;
-        //         byte++;
-        //     } else {
+    char temp[9]="!!!!!!!!";
+    strcpy(pass,temp);
+    while (!end_flag && t<100000) {
+        // for (int i=0;i<8;i++){
         //         int asc = dis_asc(gen);
         //         if (asc == 60) {
         //             asc = 32;
@@ -498,28 +406,9 @@ void trip_search(char *target,int length){
         //         if (asc == 62) {
         //             asc = 29;
         //         }
-        //         pass[byte] = asc;
-        //         byte++;
-        //     }
+        //         pass[i] = asc;
         // }
-        for (int i=0;i<8;i++){
-                int asc = dis_asc(gen);
-                if (asc == 60) {
-                    asc = 32;
-                }
-                if (asc == 34) {
-                    asc = 31;
-                }
-                if (asc == 38) {
-                    asc = 30;
-                }
-                if (asc == 62) {
-                    asc = 29;
-                }
-                pass[i] = asc;
-                // pass[i] = dis_safe(gen);
-        }
-        pass[8]='\0';
+        // pass[8]='\0';
         bool check_flag=true;
         trip_generate(pass,trip);
         trip[16]='\0';
@@ -544,41 +433,51 @@ void trip_search(char *target,int length){
             }
             end_flag=true;
         }
+        char _c=0;
+        if(pass[0]>=126){
+            pass[0]=33;
+            _c=1;
+        }else{
+            pass[0]+=1;
+            _c=0;
+        }
+        for(int i=1;i<8;i++){
+            if(pass[i]+_c>=126){
+                pass[i]=33;
+                _c=1;
+                continue;
+            }else{
+                break;
+            }
+        }
+        pass[8]='\0';
         t++;
     }
     if(end_flag){  
     }else{
+        printf("last_pass: %s\n",pass);
         printf("見つかりませんでした。\n");
     }
 }
-
+#include <time.h>
 int main(){
-    // ◆k�ZcxdqBlsUUUU : #k˃G䅐yk�ZcxdqBlsUUUU
-    //trip:]U9AjOBmnsBDA target: ABC pass: @WOQ8VA6
-    char result[17];
-    char tripkey[9] = "AAAAAAAA";
-    trip_generate(tripkey,result);
-    result[16]='\n';
-    printf("◆%s : #%s\n",result,tripkey);
-    trip_generate(tripkey,result);
-    result[16]='\n';
-    printf("◆%s : #%s\n",result,tripkey);
-    char pass[9]="AAAAAAAA";
-    char salt[3]="AA";
-    crypt(pass,salt,result);
-    printf("◆%s : #%s\n",result,pass);
     char target[16]; 
-    target[0] = 'A';
+    target[0] = 'I';
     target[1] = 'A';
     target[2] = '\0';
     target[3] = '\0';
     target[4] = '\0';
-    int t=strlen(target);
+
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();  // 開始時間を記録
+
     trip_search(target, strlen(target));
 
+    // 終了時間を記録
+    end = clock();  // 終了時間を記録
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;  // 実行時間を計算
+    printf("実行時間: %f 秒\n", cpu_time_used);
 
-    trip_generate(tripkey,result);
-    result[16]='\n';
-    printf("◆%s : #%s\n",result,tripkey);
     return 1;
 }
